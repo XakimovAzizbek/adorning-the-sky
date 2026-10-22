@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#070918">
+  <meta name="description" content="Osmonoro — Quyosh tizimining 3D simulyatori. Barmoq bilan aylantiring va sayyoralarni yaqindan koʻring.">
+  <title>Osmonoro — Quyosh tizimi simulyatori</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="scene" aria-label="Quyosh tizimining 3D modeli"></canvas>
+  <div id="labels" aria-hidden="true"></div>
+
+  <header class="top">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="16" cy="16" r="5" fill="currentColor"/>
+        <ellipse cx="16" cy="16" rx="14" ry="6" fill="none" stroke="currentColor" stroke-width="1.5" transform="rotate(-28 16 16)"/>
+        <circle cx="27.3" cy="14.4" r="2" fill="currentColor"/>
+      </svg>
+      <div>
+        <h1>Osmonoro</h1>
+        <p>Quyosh tizimi simulyatori</p>
+      </div>
+    </div>
+
+    <div class="tools">
+      <div class="row">
+        <div class="seg glass" id="speed" role="group" aria-label="Vaqt tezligi">
+          <button type="button" data-s="0" aria-label="Toʻxtatish">
+            <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="1" width="3" height="10" rx="1" fill="currentColor"/><rect x="7" y="1" width="3" height="10" rx="1" fill="currentColor"/></svg>
+          </button>
+          <button type="button" data-s="1">1×</button>
+          <button type="button" data-s="4" class="on">4×</button>
+          <button type="button" data-s="16">16×</button>
+          <button type="button" data-s="64">64×</button>
+        </div>
+        <div class="actions">
+          <button type="button" id="btnRec" class="iconbtn glass" aria-label="Videoga yozish">
+            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><circle class="dot" cx="9" cy="9" r="3.6" fill="currentColor"/></svg>
+            <span id="recTime" hidden>0:00</span>
+          </button>
+          <button type="button" id="btnShare" class="iconbtn glass" aria-label="Ulashish" aria-expanded="false" aria-controls="shareMenu">
+            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="4" cy="9" r="2.2" fill="currentColor"/><circle cx="14" cy="4" r="2.2" fill="currentColor"/><circle cx="14" cy="14" r="2.2" fill="currentColor"/><path d="M5.8 8l6.4-3M5.8 10l6.4 3" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="toggles">
+        <button type="button" id="tglTour" class="pill glass" aria-pressed="false">Avto sayr</button>
+        <button type="button" id="tglMusic" class="pill glass on" aria-pressed="true">Musiqa</button>
+        <button type="button" id="tglOrbits" class="pill glass on" aria-pressed="true">Orbita</button>
+        <button type="button" id="tglLabels" class="pill glass on" aria-pressed="true">Nomlar</button>
+      </div>
+      <div id="shareMenu" class="menu glass" hidden>
+        <button type="button" data-fmt="png">PNG rasm</button>
+        <button type="button" data-fmt="jpg">JPG rasm</button>
+        <button type="button" data-fmt="svg">SVG</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="dock">
+    <p id="hint" class="hint glass">Aylantirish uchun suring, yaqinlashtirish uchun ikki barmoq ishlating. Sayyorani bosing.</p>
+
+    <section id="info" class="glass" hidden aria-live="polite">
+      <div class="info-head">
+        <h2 id="infoName"></h2>
+        <button type="button" id="infoClose" aria-label="Yopish">
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <p id="infoDesc"></p>
+      <dl id="infoStats"></dl>
+    </section>
+
+    <nav id="chips" aria-label="Osmon jismlari"></nav>
+  </div>
+
+  <div id="result" class="modal" hidden role="dialog" aria-modal="true" aria-label="Tayyor">
+    <div class="modal-card glass">
+      <div id="resultMedia" class="result-media"></div>
+      <p id="resultName"></p>
+      <div class="modal-actions">
+        <button type="button" id="resultSave" class="btn primary">Saqlash</button>
+        <button type="button" id="resultShare" class="btn" hidden>Ulashish</button>
+        <button type="button" id="resultClose" class="btn ghost">Yopish</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast glass" hidden role="status"></div>
+
+  <div id="loader">
+    <div class="orbit" aria-hidden="true"><span></span></div>
+    <h2>Osmonoro</h2>
+    <p id="loaderText">Sayyoralar yaratilmoqda…</p>
+  </div>
+
+  <noscript><p class="noscript">Bu sahifa ishlashi uchun JavaScript kerak.</p></noscript>
+
+  <script>
+    setTimeout(function () {
+      if (!window.__osmonoroReady) {
+        var t = document.getElementById('loaderText');
+        if (t) t.textContent = 'Yuklanmadi. Internetni tekshirib, sahifani yangilang.';
+      }
+    }, 9000);
+  </script>
+  <script type="module" src="index.js"></script>
+</body>
+</html>
